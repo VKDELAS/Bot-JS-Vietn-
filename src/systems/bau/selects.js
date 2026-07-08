@@ -113,8 +113,7 @@ function modalEditarQuantidade(itemId, quantidadeAtual) {
 
 // ---------- Router principal ----------
 async function handleSelectMenu(interaction) {
-  const [, , contexto] = interaction.customId.split('__');
-  const tipoSelect = interaction.customId.split('__')[0];
+  const [tipoSelect, contexto] = interaction.customId.split('__');
 
   // --- Select de deletar categoria (gerenciar) ---
   if (interaction.customId === 'bau_ger_sel_deletar_cat') {
