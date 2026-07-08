@@ -1,23 +1,26 @@
 // ============================================================
 // commands/setup.js
-// Comando /setup — posta OU atualiza ambos os painéis fixos
-// (Baú + Registro). Só reenvía se o conteúdo mudou.
+// Posta ou atualiza os painéis fixos (Baú + Registro).
+//
+// Lógica de versão:
+//   - Cada painel tem uma version salva no banco.
+//   - Se a version no banco == SETUP_VERSION → painel está atualizado.
+//     Só verifica se a mensagem ainda existe; se sim, não faz nada.
+//   - Se a version for diferente (ou não existir) → apaga o antigo e envia novo.
+//   - Para forçar reenvio: bumpar SETUP_VERSION em config/settings.js.
 // ============================================================
 
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 
 const { ehLider } = require('../utils/permissoes');
-const { montarContainerPainel, enviarPainel } = require('../systems/bau/painel');
+const { montarContainerPainel } = require('../systems/bau/painel');
 const { construirContainerRegistro } = require('../systems/registro/painel');
 const queries = require('../database/queries');
-const { BAU_PANEL_CHANNEL_ID, REGISTRO_CHANNEL_ID } = require('../config/settings');
+const { BAU_PANEL_CHANNEL_ID, REGISTRO_CHANNEL_ID, SETUP_VERSION } = require('../config/settings');
 
-// Serializa um ContainerBuilder pra string comparável
-function serializar(container) {
-  return JSON.stringify(container.toJSON());
-}
-
-// Tenta buscar a mensagem existente de um painel. Retorna null se não existir.
+/**
+ * Tenta buscar uma mensagem existente. Retorna null se não encontrar.
+ */
 async function buscarMensagem(client, channelId, messageId) {
   try {
     const canal = await client.channels.fetch(channelId);
@@ -27,9 +30,25 @@ async function buscarMensagem(client, channelId, messageId) {
   }
 }
 
-// Retorna a string serializada dos components de uma mensagem do Discord
-function serializarMensagem(mensagem) {
-  return JSON.stringify(mensagem.components.map((c) => c.toJSON()));
+/**
+ * Apaga a mensagem antiga e envia o novo painel no canal.
+ * Retorna a nova mensagem.
+ */
+async function substituirPainel(client, channelId, mensagemAntiga, container) {
+  // Tenta apagar o antigo — falha silenciosa se já foi deletado
+  if (mensagemAntiga) {
+    try {
+      await mensagemAntiga.delete();
+    } catch (e) {
+      console.warn('[setup] Não foi possível apagar painel antigo:', e.message);
+    }
+  }
+
+  const canal = await client.channels.fetch(channelId);
+  return canal.send({
+    components: [container],
+    flags: MessageFlags.IsComponentsV2,
+  });
 }
 
 module.exports = {
@@ -52,71 +71,62 @@ module.exports = {
     const linhas = [];
 
     // ─── Painel do Baú ─────────────────────────────────────────
-    const novoContainerBau = montarContainerPainel();
-    const novoJsonBau = serializar(novoContainerBau);
+    try {
+      const registroBau = queries.buscarPainel();
+      const versaoOkBau = registroBau?.version === SETUP_VERSION;
 
-    const registroBau = queries.buscarPainel();
-    let mensagemBau = registroBau?.message_id
-      ? await buscarMensagem(client, registroBau.channel_id, registroBau.message_id)
-      : null;
-
-    if (!mensagemBau) {
-      // Não existe → envia novo
-      const canal = await client.channels.fetch(BAU_PANEL_CHANNEL_ID);
-      mensagemBau = await canal.send({
-        components: [novoContainerBau],
-        flags: MessageFlags.IsComponentsV2,
-      });
-      queries.salvarPainel(canal.id, mensagemBau.id);
-      linhas.push(`📦 Baú: ✅ Painel enviado → [ver](${mensagemBau.url})`);
-    } else {
-      const jsonAtual = serializarMensagem(mensagemBau);
-      if (jsonAtual === novoJsonBau) {
-        linhas.push(`📦 Baú: ✓ Sem alterações`);
+      if (versaoOkBau) {
+        // Versão correta — verifica só se a mensagem ainda existe
+        const msg = await buscarMensagem(client, registroBau.channel_id, registroBau.message_id);
+        if (msg) {
+          linhas.push(`📦 Baú: ✓ Sem alterações — [ver](${msg.url})`);
+        } else {
+          // Mensagem foi deletada externamente → reenvía
+          const nova = await substituirPainel(client, BAU_PANEL_CHANNEL_ID, null, montarContainerPainel());
+          queries.salvarPainel(nova.channelId, nova.id, SETUP_VERSION);
+          linhas.push(`📦 Baú: ✅ Reenviado (mensagem anterior deletada) — [ver](${nova.url})`);
+        }
       } else {
-        await mensagemBau.delete().catch(() => {});
-        const canal = await client.channels.fetch(BAU_PANEL_CHANNEL_ID);
-        const nova = await canal.send({
-          components: [novoContainerBau],
-          flags: MessageFlags.IsComponentsV2,
-        });
-        queries.salvarPainel(canal.id, nova.id);
-        linhas.push(`📦 Baú: 🔄 Painel atualizado → [ver](${nova.url})`);
+        // Versão desatualizada ou não existe → apaga e envia novo
+        const msgAntiga = registroBau?.message_id
+          ? await buscarMensagem(client, registroBau.channel_id, registroBau.message_id)
+          : null;
+
+        const nova = await substituirPainel(client, BAU_PANEL_CHANNEL_ID, msgAntiga, montarContainerPainel());
+        queries.salvarPainel(nova.channelId, nova.id, SETUP_VERSION);
+        linhas.push(`📦 Baú: 🔄 ${registroBau ? 'Atualizado' : 'Enviado'} — [ver](${nova.url})`);
       }
+    } catch (e) {
+      console.error('[setup] Erro no painel do baú:', e);
+      linhas.push(`📦 Baú: ❌ Erro — ${e.message}`);
     }
 
     // ─── Painel de Registro ────────────────────────────────────
-    const novoContainerReg = construirContainerRegistro();
-    const novoJsonReg = serializar(novoContainerReg);
+    try {
+      const registroReg = queries.buscarPainelRegistro();
+      const versaoOkReg = registroReg?.version === SETUP_VERSION;
 
-    const registroReg = queries.buscarPainelRegistro();
-    let mensagemReg = registroReg?.message_id
-      ? await buscarMensagem(client, registroReg.channel_id, registroReg.message_id)
-      : null;
-
-    if (!mensagemReg) {
-      // Não existe → envia novo
-      const canal = await client.channels.fetch(REGISTRO_CHANNEL_ID);
-      mensagemReg = await canal.send({
-        components: [novoContainerReg],
-        flags: MessageFlags.IsComponentsV2,
-      });
-      queries.salvarPainelRegistro(canal.id, mensagemReg.id);
-      linhas.push(`📋 Registro: ✅ Painel enviado → [ver](${mensagemReg.url})`);
-    } else {
-      const jsonAtual = serializarMensagem(mensagemReg);
-      if (jsonAtual === novoJsonReg) {
-        linhas.push(`📋 Registro: ✓ Sem alterações`);
+      if (versaoOkReg) {
+        const msg = await buscarMensagem(client, registroReg.channel_id, registroReg.message_id);
+        if (msg) {
+          linhas.push(`📋 Registro: ✓ Sem alterações — [ver](${msg.url})`);
+        } else {
+          const nova = await substituirPainel(client, REGISTRO_CHANNEL_ID, null, construirContainerRegistro());
+          queries.salvarPainelRegistro(nova.channelId, nova.id, SETUP_VERSION);
+          linhas.push(`📋 Registro: ✅ Reenviado (mensagem anterior deletada) — [ver](${nova.url})`);
+        }
       } else {
-        await mensagemReg.delete().catch(() => {});
-        const canal = await client.channels.fetch(REGISTRO_CHANNEL_ID);
-        const nova = await canal.send({
-          components: [novoContainerReg],
-          flags: MessageFlags.IsComponentsV2,
-        });
-        queries.salvarPainelRegistro(canal.id, nova.id);
-        linhas.push(`📋 Registro: 🔄 Painel atualizado → [ver](${nova.url})`);
+        const msgAntiga = registroReg?.message_id
+          ? await buscarMensagem(client, registroReg.channel_id, registroReg.message_id)
+          : null;
+
+        const nova = await substituirPainel(client, REGISTRO_CHANNEL_ID, msgAntiga, construirContainerRegistro());
+        queries.salvarPainelRegistro(nova.channelId, nova.id, SETUP_VERSION);
+        linhas.push(`📋 Registro: 🔄 ${registroReg ? 'Atualizado' : 'Enviado'} — [ver](${nova.url})`);
       }
+    } catch (e) {
+      console.error('[setup] Erro no painel de registro:', e);
+      linhas.push(`📋 Registro: ❌ Erro — ${e.message}`);
     }
 
     await interaction.editReply({ content: linhas.join('\n') });

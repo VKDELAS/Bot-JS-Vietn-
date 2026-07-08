@@ -81,5 +81,9 @@ module.exports = {
     ALERTA: 0xffb800,       // Amarelo dourado para itens em falta / registros pendentes
     INFO: 0x3498db,         // Azul brilhante para ver estoque / históricos
     MUTED: 0x2f3136,        // Cinza escuro discreto
-  }
+  },
+
+  // Versão do design dos painéis. Mude este valor sempre que alterar
+  // o layout do painel do baú ou de registro para forçar o /setup a reenviar.
+  SETUP_VERSION: 'v3',
 };

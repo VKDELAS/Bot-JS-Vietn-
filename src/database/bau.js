@@ -64,6 +64,13 @@ function migrar() {
     );
   `);
 
+  // Adiciona coluna version se ainda não existir (migration incremental)
+  for (const tabela of ['bau_painel', 'registro_painel']) {
+    try {
+      db.exec(`ALTER TABLE ${tabela} ADD COLUMN version TEXT`);
+    } catch { /* coluna já existe */ }
+  }
+
   const inserirCategoria = db.prepare(
      'INSERT OR IGNORE INTO bau_categorias (nome, emoji) VALUES (?, ?)'
   );
