@@ -1,0 +1,15 @@
+{
+  "name": "ms13-bau",
+  "version": "1.0.0",
+  "description": "Sistema de Baú da Facção para o ms13_bot (Discord.js v14)",
+  "main": "index.js",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "discord.js": "^14.17.0",
+    "dotenv": "^17.4.2"
+  }
+}
