@@ -74,6 +74,8 @@ async function handleButton(interaction, client) {
       return gerenciar.handleCriarItemInicio(interaction);
     case 'bau_ger_add_categoria':
       return gerenciar.handleAdicionarCategoriaInicio(interaction);
+    case 'bau_ger_retirar_categoria':
+      return gerenciar.handleRetirarCategoriaInicio(interaction);
     case 'bau_ger_resetar_item':
       return gerenciar.handleResetarItemInicio(interaction);
     case 'bau_ger_editar_qtd':

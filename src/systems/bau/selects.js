@@ -116,6 +116,13 @@ async function handleSelectMenu(interaction) {
   const [, , contexto] = interaction.customId.split('__');
   const tipoSelect = interaction.customId.split('__')[0];
 
+  // --- Select de deletar categoria (gerenciar) ---
+  if (interaction.customId === 'bau_ger_sel_deletar_cat') {
+    const gerenciar = require('./gerenciar');
+    const categoriaId = interaction.values[0];
+    return gerenciar.handleConfirmarDeletarCategoria(interaction, categoriaId);
+  }
+
   // --- Selects de categoria ---
   if (tipoSelect === 'bau_cat_sel') {
     const categoriaId = interaction.values[0];

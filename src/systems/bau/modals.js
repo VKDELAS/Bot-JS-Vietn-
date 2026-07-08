@@ -144,21 +144,21 @@ async function handleModalSubmit(interaction, client) {
   // ---------- Gerenciar Baú: Adicionar Categoria ----------
   if (tipo === 'bau_modal_add_categoria') {
     const nome = interaction.fields.getTextInputValue('nome').trim();
-    const emoji = interaction.fields.getTextInputValue('emoji')?.trim() || '📦';
+    const emoji = interaction.fields.getTextInputValue('emoji').trim() || '📦';
 
-    try {
-      queries.criarCategoria(nome, emoji);
-      await interaction.reply({
-        content: `✅ Categoria **${emoji} ${nome}** criada com sucesso.`,
-        ephemeral: true,
-      });
-    } catch (erro) {
-      await interaction.reply({
-        content: `❌ Já existe uma categoria chamada **${nome}**.`,
+    const jaExiste = queries.buscarCategoriaPorNome(nome);
+    if (jaExiste) {
+      return interaction.reply({
+        content: `❌ Já existe uma categoria chamada **${jaExiste.emoji} ${jaExiste.nome}**.`,
         ephemeral: true,
       });
     }
-    return;
+
+    queries.criarCategoria(nome, emoji);
+    return interaction.reply({
+      content: `✅ Categoria **${emoji} ${nome}** criada com sucesso.`,
+      ephemeral: true,
+    });
   }
 
   // ---------- Gerenciar Baú: Editar Quantidade Manual ----------

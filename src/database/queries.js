@@ -15,10 +15,26 @@ module.exports = {
     return db.prepare('SELECT * FROM bau_categorias WHERE id = ?').get(id);
   },
 
+  buscarCategoriaPorNome(nome) {
+    return db
+      .prepare('SELECT * FROM bau_categorias WHERE nome = ? COLLATE NOCASE')
+      .get(nome);
+  },
+
   criarCategoria(nome, emoji) {
     return db
       .prepare('INSERT INTO bau_categorias (nome, emoji) VALUES (?, ?)')
       .run(nome, emoji);
+  },
+
+  deletarCategoria(id) {
+    // Só deleta se não tiver itens vinculados
+    const total = db
+      .prepare('SELECT COUNT(*) AS total FROM bau_itens WHERE categoria_id = ?')
+      .get(id).total;
+    if (total > 0) return { bloqueado: true, total };
+    db.prepare('DELETE FROM bau_categorias WHERE id = ?').run(id);
+    return { bloqueado: false };
   },
 
   // ---------- Itens ----------

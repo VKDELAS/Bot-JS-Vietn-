@@ -57,6 +57,11 @@ async function handleAbrirSubmenu(interaction) {
       .setEmoji('🗂️')
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
+      .setCustomId('bau_ger_retirar_categoria')
+      .setLabel('Retirar Categoria')
+      .setEmoji('🗑️')
+      .setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
       .setCustomId('bau_ger_resetar_item')
       .setLabel('Resetar Item')
       .setEmoji('🔁')
@@ -164,6 +169,59 @@ async function handleConfirmarReset(interaction, itemId, client) {
   await atualizarPainel(client);
 }
 
+async function handleRetirarCategoriaInicio(interaction) {
+  if (!ehLider(interaction.member)) {
+    return negarPermissao(interaction);
+  }
+
+  const categorias = queries.listarCategorias();
+  if (categorias.length === 0) {
+    return interaction.reply({ content: '❌ Nenhuma categoria cadastrada.', ephemeral: true });
+  }
+
+  const { StringSelectMenuBuilder } = require('discord.js');
+
+  const select = new StringSelectMenuBuilder()
+    .setCustomId('bau_ger_sel_deletar_cat')
+    .setPlaceholder('Escolha a categoria para remover')
+    .addOptions(
+      categorias.map((c) => ({
+        label: `${c.emoji} ${c.nome}`,
+        value: String(c.id),
+      }))
+    );
+
+  await interaction.reply({
+    content: '🗑️ Escolha a categoria que deseja remover:\n> ⚠️ Só é possível remover categorias **sem itens vinculados**.',
+    components: [new ActionRowBuilder().addComponents(select)],
+    ephemeral: true,
+  });
+}
+
+async function handleConfirmarDeletarCategoria(interaction, categoriaId) {
+  if (!ehLider(interaction.member)) {
+    return negarPermissao(interaction);
+  }
+
+  const categoria = queries.buscarCategoriaPorId(categoriaId);
+  if (!categoria) {
+    return interaction.update({ content: '❌ Categoria não encontrada.', components: [] });
+  }
+
+  const resultado = queries.deletarCategoria(categoriaId);
+  if (resultado.bloqueado) {
+    return interaction.update({
+      content: `❌ Não é possível remover **${categoria.emoji} ${categoria.nome}** — ela tem ${resultado.total} item(ns) vinculado(s).\nRemova ou mova os itens antes.`,
+      components: [],
+    });
+  }
+
+  await interaction.update({
+    content: `✅ Categoria **${categoria.emoji} ${categoria.nome}** removida com sucesso.`,
+    components: [],
+  });
+}
+
 async function handleCancelar(interaction) {
   await interaction.update({ content: '❎ Ação cancelada.', components: [] });
 }
@@ -172,6 +230,8 @@ module.exports = {
   handleAbrirSubmenu,
   handleCriarItemInicio,
   handleAdicionarCategoriaInicio,
+  handleRetirarCategoriaInicio,
+  handleConfirmarDeletarCategoria,
   handleResetarItemInicio,
   handleEditarQuantidadeInicio,
   handleConfirmarReset,
