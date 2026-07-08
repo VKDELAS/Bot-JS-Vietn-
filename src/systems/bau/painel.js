@@ -95,6 +95,7 @@ function montarContainerPainel() {
       .addTextDisplayComponents(
         new TextDisplayBuilder().setContent('## 🏴 BAÚ DA FACÇÃO')
       )
+      .setThumbnailAccessory(new ThumbnailBuilder().setURL(IMAGEM_FACCAO_URL))
   );
 
   container.addSeparatorComponents(new SeparatorBuilder());
