@@ -146,25 +146,29 @@ async function handleModalSubmit(interaction, client) {
     });
   }
 
-  // Criação de um layout Components V2 premium para a aprovação da gerência
+  // Layout CV2 limpo para aprovação
   const container = new ContainerBuilder().setAccentColor(CORES.ALERTA);
+
   container.addSectionComponents(
     new SectionBuilder()
       .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent('## 📥 Novo Registro — Pendente')
+        new TextDisplayBuilder().setContent(
+          `## 📋 Registro Pendente\n-# Aguardando análise da gerência`
+        )
       )
-      .setThumbnailAccessory(new ThumbnailBuilder().setURL(user.displayAvatarURL({ dynamic: true })))
+      .setThumbnailAccessory(
+        new ThumbnailBuilder().setURL(user.displayAvatarURL({ dynamic: true }))
+      )
   );
 
   container.addSeparatorComponents(new SeparatorBuilder());
 
   container.addTextDisplayComponents(
     new TextDisplayBuilder().setContent(
-      `👤 **Discord:** <@${user.id}>\n` +
-      `🪪 **Nome:** ${nomeVal}\n` +
-      `🆔 **ID:** ${idVal}\n` +
-      `📞 **Número:** ${numeroVal}\n\n` +
-      `*ID Discord: ${user.id}*`
+      `**Discord** · <@${user.id}>\n` +
+      `**Nome** · ${nomeVal}\n` +
+      `**ID** · \`${idVal}\`\n` +
+      `**Número** · \`${numeroVal}\``
     )
   );
 
@@ -175,18 +179,16 @@ async function handleModalSubmit(interaction, client) {
       new ButtonBuilder()
         .setCustomId(`registro_aprovar__${user.id}`)
         .setLabel('Aprovar')
-        .setEmoji('✅')
         .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
         .setCustomId(`registro_reprovar__${user.id}`)
         .setLabel('Reprovar')
-        .setEmoji('❌')
         .setStyle(ButtonStyle.Danger)
     )
   );
 
   const msg = await canalLogs.send({
-    content: `🔔 Novo registro de <@${user.id}> aguardando aprovação!`,
+    content: `🔔 <@${user.id}> enviou um registro — <t:${Math.floor(Date.now() / 1000)}:R>`,
     components: [container],
     flags: MessageFlags.IsComponentsV2,
   });

@@ -186,4 +186,16 @@ module.exports = {
   buscarPainel() {
     return db.prepare('SELECT * FROM bau_painel WHERE id = 1').get();
   },
+
+  // ---------- Painel fixo do registro ----------
+  salvarPainelRegistro(channelId, messageId) {
+    db.prepare(
+      `INSERT INTO registro_painel (id, channel_id, message_id) VALUES (1, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET channel_id = excluded.channel_id, message_id = excluded.message_id`
+    ).run(channelId, messageId);
+  },
+
+  buscarPainelRegistro() {
+    return db.prepare('SELECT * FROM registro_painel WHERE id = 1').get();
+  },
 };

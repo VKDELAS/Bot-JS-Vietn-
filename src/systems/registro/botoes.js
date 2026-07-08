@@ -87,12 +87,14 @@ async function handleButton(interaction, client) {
       console.error('[registro] Não foi possível alterar o nickname do membro:', erro.message);
     }
 
-    // 3. Atualiza a mensagem original no canal de logs (Components V2)
+    // 3. Atualiza a mensagem no canal de logs
     const container = new ContainerBuilder().setAccentColor(CORES.APROVADO);
     container.addSectionComponents(
       new SectionBuilder()
         .addTextDisplayComponents(
-          new TextDisplayBuilder().setContent('## ✅ Registro — APROVADO')
+          new TextDisplayBuilder().setContent(
+            `## ✅ Registro Aprovado\n-# Aprovado por <@${interaction.user.id}>`
+          )
         )
         .setThumbnailAccessory(
           new ThumbnailBuilder().setURL(membro.user.displayAvatarURL({ dynamic: true }))
@@ -103,17 +105,15 @@ async function handleButton(interaction, client) {
 
     container.addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `👤 **Discord:** <@${targetUserId}>\n` +
-        `🪪 **Nome:** ${dados.nome}\n` +
-        `🆔 **ID:** ${dados.id_fac}\n` +
-        `📞 **Número:** ${dados.numero}\n\n` +
-        `✅ **Aprovado por:** <@${interaction.user.id}>\n\n` +
-        `*ID Discord: ${targetUserId}*`
+        `**Discord** · <@${targetUserId}>\n` +
+        `**Nome** · ${dados.nome}\n` +
+        `**ID** · \`${dados.id_fac}\`\n` +
+        `**Número** · \`${dados.numero}\``
       )
     );
 
     await interaction.message.edit({
-      content: `✅ Registro de <@${targetUserId}> aprovado por <@${interaction.user.id}>.`,
+      content: `✅ <@${targetUserId}> aprovado por <@${interaction.user.id}> — <t:${Math.floor(Date.now() / 1000)}:R>`,
       components: [container],
       flags: MessageFlags.IsComponentsV2,
     });
@@ -159,12 +159,14 @@ async function handleButton(interaction, client) {
   } else {
     // --- Fluxo de Reprovação ---
 
-    // 1. Atualiza a mensagem original no canal de logs (Components V2)
+    // 1. Atualiza a mensagem no canal de logs
     const container = new ContainerBuilder().setAccentColor(CORES.REPROVADO);
     container.addSectionComponents(
       new SectionBuilder()
         .addTextDisplayComponents(
-          new TextDisplayBuilder().setContent('## ❌ Registro — REPROVADO')
+          new TextDisplayBuilder().setContent(
+            `## ❌ Registro Reprovado\n-# Reprovado por <@${interaction.user.id}>`
+          )
         )
         .setThumbnailAccessory(
           new ThumbnailBuilder().setURL(membro.user.displayAvatarURL({ dynamic: true }))
@@ -175,17 +177,15 @@ async function handleButton(interaction, client) {
 
     container.addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `👤 **Discord:** <@${targetUserId}>\n` +
-        `🪪 **Nome:** ${dados.nome}\n` +
-        `🆔 **ID:** ${dados.id_fac}\n` +
-        `📞 **Número:** ${dados.numero}\n\n` +
-        `❌ **Reprovado por:** <@${interaction.user.id}>\n\n` +
-        `*ID Discord: ${targetUserId}*`
+        `**Discord** · <@${targetUserId}>\n` +
+        `**Nome** · ${dados.nome}\n` +
+        `**ID** · \`${dados.id_fac}\`\n` +
+        `**Número** · \`${dados.numero}\``
       )
     );
 
     await interaction.message.edit({
-      content: `❌ Registro de <@${targetUserId}> reprovado por <@${interaction.user.id}>.`,
+      content: `❌ <@${targetUserId}> reprovado por <@${interaction.user.id}> — <t:${Math.floor(Date.now() / 1000)}:R>`,
       components: [container],
       flags: MessageFlags.IsComponentsV2,
     });

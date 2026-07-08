@@ -57,6 +57,8 @@ async function handleModalSubmit(interaction, client) {
     await atualizarPainel(client);
     await logarMovimentacao(client, {
       usuarioTag: interaction.user.tag,
+      usuarioId: interaction.user.id,
+      usuarioAvatarURL: interaction.user.displayAvatarURL({ dynamic: true }),
       tipo: 'entrada',
       quantidade,
       itemNome: item.nome,
@@ -101,6 +103,8 @@ async function handleModalSubmit(interaction, client) {
     await atualizarPainel(client);
     await logarMovimentacao(client, {
       usuarioTag: interaction.user.tag,
+      usuarioId: interaction.user.id,
+      usuarioAvatarURL: interaction.user.displayAvatarURL({ dynamic: true }),
       tipo: 'saida',
       quantidade,
       itemNome: item.nome,
@@ -192,6 +196,8 @@ async function handleModalSubmit(interaction, client) {
     await atualizarPainel(client);
     await logarMovimentacao(client, {
       usuarioTag: interaction.user.tag,
+      usuarioId: interaction.user.id,
+      usuarioAvatarURL: interaction.user.displayAvatarURL({ dynamic: true }),
       tipo: 'ajuste_manual',
       quantidade: Math.abs(diferenca),
       itemNome: item.nome,

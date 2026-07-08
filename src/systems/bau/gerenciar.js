@@ -16,6 +16,7 @@ const queries = require('../../database/queries');
 const { ehLider, negarPermissao } = require('../../utils/permissoes');
 const { atualizarPainel } = require('./painel');
 const { construirSelectCategorias, construirSelectItens } = require('./selects');
+const { logarMovimentacao } = require('./log');
 
 function modalAdicionarCategoria() {
   return new ModalBuilder()
@@ -167,6 +168,17 @@ async function handleConfirmarReset(interaction, itemId, client) {
   });
 
   await atualizarPainel(client);
+  if (quantidadeAnterior > 0) {
+    await logarMovimentacao(client, {
+      usuarioTag: interaction.user.tag,
+      usuarioId: interaction.user.id,
+      usuarioAvatarURL: interaction.user.displayAvatarURL({ dynamic: true }),
+      tipo: 'ajuste_manual',
+      quantidade: quantidadeAnterior,
+      itemNome: item.nome,
+      itemEmoji: item.emoji,
+    });
+  }
 }
 
 async function handleRetirarCategoriaInicio(interaction) {

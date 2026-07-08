@@ -55,6 +55,13 @@ function migrar() {
       channel_id TEXT,
       message_id TEXT
     );
+
+    -- Guarda o message_id do painel de registro
+    CREATE TABLE IF NOT EXISTS registro_painel (
+      id         INTEGER PRIMARY KEY CHECK (id = 1),
+      channel_id TEXT,
+      message_id TEXT
+    );
   `);
 
   const inserirCategoria = db.prepare(
