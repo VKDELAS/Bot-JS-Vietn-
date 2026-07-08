@@ -100,6 +100,12 @@ module.exports = {
       );
   },
 
+  excluirItem(itemId) {
+    // Remove movimentações primeiro (FK constraint) depois o item
+    db.prepare('DELETE FROM bau_movimentacoes WHERE item_id = ?').run(itemId);
+    db.prepare('DELETE FROM bau_itens WHERE id = ?').run(itemId);
+  },
+
   ajustarQuantidade(itemId, delta) {
     const agora = new Date().toISOString();
     db.prepare(

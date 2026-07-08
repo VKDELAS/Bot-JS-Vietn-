@@ -76,6 +76,8 @@ async function handleButton(interaction, client) {
       return gerenciar.handleAdicionarCategoriaInicio(interaction);
     case 'bau_ger_retirar_categoria':
       return gerenciar.handleRetirarCategoriaInicio(interaction);
+    case 'bau_ger_excluir_item':
+      return gerenciar.handleExcluirItemInicio(interaction);
     case 'bau_ger_resetar_item':
       return gerenciar.handleResetarItemInicio(interaction);
     case 'bau_ger_editar_qtd':
@@ -84,10 +86,13 @@ async function handleButton(interaction, client) {
       return gerenciar.handleCancelar(interaction);
 
     default:
-      // Botões dinâmicos: "bau_confirmar_reset__<itemId>"
       if (interaction.customId.startsWith('bau_confirmar_reset__')) {
         const itemId = interaction.customId.split('__')[1];
         return gerenciar.handleConfirmarReset(interaction, itemId, client);
+      }
+      if (interaction.customId.startsWith('bau_confirmar_excluir__')) {
+        const itemId = interaction.customId.split('__')[1];
+        return gerenciar.handleConfirmarExcluirItem(interaction, itemId, client);
       }
   }
 }

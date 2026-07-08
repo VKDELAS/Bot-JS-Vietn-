@@ -170,6 +170,26 @@ async function handleSelectMenu(interaction) {
         ephemeral: true,
       });
     }
+
+    if (contexto === 'excluir') {
+      const linhaConfirmacao = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`bau_confirmar_excluir__${itemId}`)
+          .setLabel(`Excluir ${item.nome} permanentemente`)
+          .setEmoji('🗑️')
+          .setStyle(ButtonStyle.Danger),
+        new ButtonBuilder()
+          .setCustomId('bau_cancelar')
+          .setLabel('Cancelar')
+          .setStyle(ButtonStyle.Secondary)
+      );
+
+      return interaction.reply({
+        content: `⚠️ Tem certeza que quer **excluir permanentemente** **${item.emoji} ${item.nome}** do catálogo?\n> Isso apagará também todo o histórico de movimentações deste item.`,
+        components: [linhaConfirmacao],
+        ephemeral: true,
+      });
+    }
   }
 }
 

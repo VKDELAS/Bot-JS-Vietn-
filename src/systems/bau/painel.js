@@ -90,12 +90,8 @@ function montarContainerPainel() {
   container.addSeparatorComponents(
     new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(false)
   );
-  container.addSectionComponents(
-    new SectionBuilder()
-      .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent('## 🏴 BAÚ DA FACÇÃO')
-      )
-      .setThumbnailAccessory(new ThumbnailBuilder().setURL(IMAGEM_FACCAO_URL))
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent('## 🏴 BAÚ DA FACÇÃO')
   );
 
   container.addSeparatorComponents(new SeparatorBuilder());

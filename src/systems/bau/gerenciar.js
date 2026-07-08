@@ -46,7 +46,7 @@ async function handleAbrirSubmenu(interaction) {
     return negarPermissao(interaction, 'Só o líder pode gerenciar o baú.');
   }
 
-  const linha = new ActionRowBuilder().addComponents(
+  const linha1 = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId('bau_ger_criar_item')
       .setLabel('Criar Item')
@@ -54,29 +54,37 @@ async function handleAbrirSubmenu(interaction) {
       .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
       .setCustomId('bau_ger_add_categoria')
-      .setLabel('Adicionar Categoria')
+      .setLabel('Add Categoria')
       .setEmoji('🗂️')
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId('bau_ger_retirar_categoria')
       .setLabel('Retirar Categoria')
       .setEmoji('🗑️')
+      .setStyle(ButtonStyle.Danger)
+  );
+
+  const linha2 = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('bau_ger_excluir_item')
+      .setLabel('Excluir Item')
+      .setEmoji('❌')
       .setStyle(ButtonStyle.Danger),
     new ButtonBuilder()
       .setCustomId('bau_ger_resetar_item')
       .setLabel('Resetar Item')
       .setEmoji('🔁')
-      .setStyle(ButtonStyle.Danger),
+      .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId('bau_ger_editar_qtd')
-      .setLabel('Editar Quantidade Manual')
+      .setLabel('Editar Quantidade')
       .setEmoji('✏️')
       .setStyle(ButtonStyle.Secondary)
   );
 
   await interaction.reply({
     content: '⚙️ **Gerenciar Baú** — escolha uma ação:',
-    components: [linha],
+    components: [linha1, linha2],
     ephemeral: true,
   });
 }
@@ -234,8 +242,45 @@ async function handleConfirmarDeletarCategoria(interaction, categoriaId) {
   });
 }
 
+async function handleExcluirItemInicio(interaction) {
+  if (!ehLider(interaction.member)) {
+    return negarPermissao(interaction);
+  }
+
+  const itens = queries.listarTodosItens();
+  if (itens.length === 0) {
+    return interaction.reply({ content: '❌ Não existe nenhum item cadastrado.', ephemeral: true });
+  }
+
+  await interaction.reply({
+    content: '❌ Escolha o item que deseja **excluir permanentemente** do catálogo:',
+    components: [construirSelectItens('excluir', itens)],
+    ephemeral: true,
+  });
+}
+
+async function handleConfirmarExcluirItem(interaction, itemId, client) {
+  if (!ehLider(interaction.member)) {
+    return negarPermissao(interaction);
+  }
+
+  const item = queries.buscarItemPorId(itemId);
+  if (!item) {
+    return interaction.update({ content: '❌ Esse item não existe mais.', components: [] });
+  }
+
+  queries.excluirItem(item.id);
+
+  await interaction.update({
+    content: `✅ Item **${item.emoji} ${item.nome}** excluído permanentemente do catálogo.`,
+    components: [],
+  });
+
+  await atualizarPainel(client);
+}
+
 async function handleCancelar(interaction) {
-  await interaction.update({ content: '❎ Ação cancelada.', components: [] });
+  await interaction.update({ content: '❌ Ação cancelada.', components: [] });
 }
 
 module.exports = {
@@ -247,5 +292,7 @@ module.exports = {
   handleResetarItemInicio,
   handleEditarQuantidadeInicio,
   handleConfirmarReset,
+  handleExcluirItemInicio,
+  handleConfirmarExcluirItem,
   handleCancelar,
 };

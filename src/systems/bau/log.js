@@ -8,9 +8,7 @@ const {
   SectionBuilder,
   TextDisplayBuilder,
   ThumbnailBuilder,
-  SeparatorBuilder,
   MessageFlags,
-  SeparatorSpacingSize,
 } = require('discord.js');
 
 const { BAU_LOG_CHANNEL_ID, CORES } = require('../../config/settings');
@@ -57,24 +55,16 @@ async function logarMovimentacao(client, dados) {
 
     const container = new ContainerBuilder().setAccentColor(cfg.cor);
 
-    container.addSeparatorComponents(
-      new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(false)
-    );
+    const qtdLabel = `${sinalQtd}${dados.quantidade} unidade${dados.quantidade !== 1 ? 's' : ''}`;
 
-    // Bloco do item (sem thumbnail — texto puro centraliza melhor)
-    container.addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(
-        `${cfg.badge}\n## ${cfg.emoji} ${itemLabel}\n-# ${sinalQtd}${dados.quantidade} unidade${dados.quantidade !== 1 ? 's' : ''}`
-      )
-    );
-
-    container.addSeparatorComponents(new SeparatorBuilder());
-
-    // Bloco do usuário — avatar fica ao lado direito desta section
+    // Tudo em uma única section: badge + item + quantidade (em destaque) + membro/quando,
+    // com o avatar do usuário como thumbnail ao lado — bem mais compacto que 2 blocos + separador.
     container.addSectionComponents(
       new SectionBuilder()
         .addTextDisplayComponents(
           new TextDisplayBuilder().setContent(
+            `${cfg.badge}\n` +
+            `### ${cfg.emoji} ${itemLabel}  ·  **${qtdLabel}**\n` +
             `**Membro** · ${dados.usuarioId ? `<@${dados.usuarioId}>` : `\`${dados.usuarioTag}\``}\n` +
             `**Quando** · <t:${agora}:f> — <t:${agora}:R>`
           )
