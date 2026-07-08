@@ -39,13 +39,14 @@ module.exports = {
   // --- Níveis de Acesso ---
   // Apenas cargos 01 e 02 têm acesso aos botões restritos do baú (Ex: Log Geral, Itens em Falta, Gerenciar)
   CARGOS_LIDERES: [
-    '1487942738950361126', //EDITOR DO SERVER
+    '1487942738950361126', // EDITOR DO SERVER
     '1487942739365593215', // 01
     '1487942739365593214', // 02
   ],
 
   // Cargos permitidos para aprovar ou reprovar os registros (01, 02 e Gerente Geral)
   CARGOS_APROVACAO_REGISTRO: [
+    '1487942738950361126', // EDITOR DO SERVER
     '1487942739365593215', // 01
     '1487942739365593214', // 02
     '1487942739365593213', // Gerente Geral
