@@ -7,8 +7,13 @@ const path = require('path');
 const Database = require('better-sqlite3');
 const { CATEGORIAS_PADRAO } = require('../config/settings');
 
-// Localização do banco no diretório data do projeto
-const DB_PATH = path.join(process.cwd(), 'data', 'ms13_bau.db');
+const fs = require('fs');
+
+// Garante que a pasta data/ existe antes de abrir o banco
+const DB_DIR = path.join(process.cwd(), 'data');
+if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+
+const DB_PATH = path.join(DB_DIR, 'ms13_bau.db');
 
 const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
