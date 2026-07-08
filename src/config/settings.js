@@ -55,7 +55,7 @@ module.exports = {
   // --- Informações da Facção ---
   FAC_NOME: 'Vietnã',
   // URL pública do brasão ou logotipo da facção (usada nos embeds/containers V2)
-  IMAGEM_FACCAO_URL: 'https://i.imgur.com/pZ2D8wA.png', // Brasão/Design Vietnã estilizado
+  IMAGEM_FACCAO_URL: 'https://cdn.discordapp.com/attachments/1487938963317719306/1524534627484696629/ChatGPT_Image_27_06_2026_02_34_25.png?ex=6a501903&is=6a4ec783&hm=6bea7af7afdd7af81026f05475d5fdf5a2020b4003f25a45b25812d3ab28f9bb&', // Brasão/Design Vietnã estilizado
 
   // --- Definições do Baú ---
   DIAS_MEMBRO_ATIVO: 7, // Quantos dias determinam a atividade de um membro no painel
