@@ -21,27 +21,34 @@ const { IMAGEM_FACCAO_URL, CORES, FAC_NOME } = require('../../config/settings');
  * @returns {ContainerBuilder}
  */
 function construirContainerRegistro() {
+  const { SeparatorSpacingSize } = require('discord.js');
   const container = new ContainerBuilder().setAccentColor(CORES.VIETNA);
+
+  // Título colado ao conteúdo — sem divider, espaçamento mínimo no topo
+  container.addSeparatorComponents(
+    new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(false)
+  );
 
   container.addSectionComponents(
     new SectionBuilder()
       .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent(`## 🇻🇳 REGISTRO — FACÇÃO ${FAC_NOME.toUpperCase()}`)
+        new TextDisplayBuilder().setContent(`## 🇻🇳 REGISTRO — ${FAC_NOME.toUpperCase()}`)
       )
       .setThumbnailAccessory(new ThumbnailBuilder().setURL(IMAGEM_FACCAO_URL))
   );
 
-  container.addSeparatorComponents(new SeparatorBuilder());
+  container.addSeparatorComponents(
+    new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(false)
+  );
 
   container.addTextDisplayComponents(
     new TextDisplayBuilder().setContent(
-      `Seja bem-vindo ao recrutamento e registro oficial do **${FAC_NOME}**!\n\n` +
-      `Para ingressar em nossa facção, clique no botão abaixo para preencher sua ficha cadastral. ` +
+      `Preencha sua ficha cadastral para ingressar na facção.\n` +
       `Tenha em mãos as seguintes informações:\n\n` +
-      `🪪 **Nome Completo** — (Sem números ou caracteres especiais)\n` +
-      `🆔 **ID** — (Apenas o seu número de identificação, entre 1 e 20000)\n` +
-      `📞 **Número de Contato** — (DDD 01 ou 02 obrigatório, sem letras)\n\n` +
-      `> ⚠️ *Após enviar o formulário, nossa gerência analisará seu pedido. Você receberá um aviso no PV quando for aprovado ou reprovado.*`
+      `▸ **Nome Completo** — sem números ou caracteres especiais\n` +
+      `▸ **ID** — número de identificação entre 1 e 20.000\n` +
+      `▸ **Número** — DDD 01 ou 02, sem letras\n\n` +
+      `> 🔺 *Após o envio, a gerência analisará sua ficha. Você será notificado no PV.*`
     )
   );
 
@@ -52,12 +59,12 @@ function construirContainerRegistro() {
       new ButtonBuilder()
         .setCustomId('registro_abrir')
         .setLabel('Registrar-se')
-        .setEmoji('📋')
         .setStyle(ButtonStyle.Primary)
     )
   );
 
   return container;
 }
+
 
 module.exports = { construirContainerRegistro };

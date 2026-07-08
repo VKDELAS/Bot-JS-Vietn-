@@ -74,15 +74,22 @@ function montarActionRows() {
   return [linha1, linha2, linha3];
 }
 
+const { SeparatorSpacingSize } = require('discord.js');
+
 function montarContainerPainel() {
   const totalItens = queries.totalItensEmEstoque();
   const membrosAtivos = queries.membrosAtivos(DIAS_MEMBRO_ATIVO);
   const temItemEmFalta = queries.existeItemEmFalta();
+  const itensPorCategoria = queries.listarItensPorCategoria();
 
   const container = new ContainerBuilder().setAccentColor(
     temItemEmFalta ? COR_PAINEL_ALERTA : COR_PAINEL_OK
   );
 
+  // --- Título ---
+  container.addSeparatorComponents(
+    new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(false)
+  );
   container.addSectionComponents(
     new SectionBuilder()
       .addTextDisplayComponents(
@@ -93,6 +100,44 @@ function montarContainerPainel() {
 
   container.addSeparatorComponents(new SeparatorBuilder());
 
+  // --- Itens agrupados por categoria ---
+  if (itensPorCategoria.length === 0) {
+    container.addTextDisplayComponents(
+      new TextDisplayBuilder().setContent('*Nenhum item cadastrado no baú ainda.*')
+    );
+  } else {
+    // Agrupar por categoria
+    const grupos = {};
+    for (const item of itensPorCategoria) {
+      const chave = item.categoria_nome;
+      if (!grupos[chave]) {
+        grupos[chave] = { emoji: item.categoria_emoji, itens: [] };
+      }
+      grupos[chave].itens.push(item);
+    }
+
+    const linhas = [];
+    for (const [nomeCategoria, grupo] of Object.entries(grupos)) {
+      linhas.push(`**${grupo.emoji} ${nomeCategoria}**`);
+      for (const item of grupo.itens) {
+        const falta = item.quantidade <= item.quantidade_minima;
+        const indicador = falta ? '🔴' : '🟢';
+        linhas.push(`${indicador} ${item.emoji} ${item.nome} — **${item.quantidade}**`);
+      }
+      linhas.push('');
+    }
+
+    // Remove última linha em branco
+    if (linhas[linhas.length - 1] === '') linhas.pop();
+
+    container.addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(linhas.join('\n'))
+    );
+  }
+
+  container.addSeparatorComponents(new SeparatorBuilder());
+
+  // --- Stats ---
   container.addTextDisplayComponents(
     new TextDisplayBuilder().setContent(
       `📦 Itens no estoque: **${totalItens}** | 👥 Membros ativos: **${membrosAtivos}**`
@@ -107,6 +152,7 @@ function montarContainerPainel() {
 
   return container;
 }
+
 
 /**
  * Envia o painel pela primeira vez no canal fixo configurado.
