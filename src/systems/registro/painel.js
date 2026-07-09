@@ -35,7 +35,7 @@ function construirContainerRegistro() {
 
   // Título no topo, sozinho — sem thumbnail, já que o banner abaixo cumpre esse papel visual
   container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(`# 🇻🇳 REGISTRO — ${FAC_NOME.toUpperCase()}`)
+    new TextDisplayBuilder().setContent(`# REGISTRO — ${FAC_NOME.toUpperCase()}`)
   );
 
   // Banner logo abaixo do título
