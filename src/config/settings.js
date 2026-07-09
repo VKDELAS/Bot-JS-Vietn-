@@ -24,6 +24,12 @@ module.exports = {
   // Canal onde os novos registros chegam para a aprovação dos superiores
   REGISTRO_LOGS_CHANNEL_ID: '1488175178738565222',
 
+  // Canal onde a mensagem de boas-vindas é enviada quando alguém entra no servidor
+  ENTRADA_CHANNEL_ID: '1487942740279824569',
+
+  // Canal onde a mensagem de despedida é enviada quando alguém sai do servidor
+  SAIDA_CHANNEL_ID: '1524585567877071010',
+
   // --- Cargos da Facção (Mapeamento Completo) ---
   ROLES: {
     EDITOR_SERVER: '1487942738950361126', // 🔒 ✍️ EDITOR DO SERVER
