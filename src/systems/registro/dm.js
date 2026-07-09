@@ -32,7 +32,7 @@ function montarContainerDMAprovado(dados) {
 
   // Título
   container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(`# 🇻🇳 Bem-vindo(a) à Facção ${FAC_NOME}!`)
+    new TextDisplayBuilder().setContent(`#Bem-vindo(a) à Facção ${FAC_NOME}!`)
   );
 
   container.addSeparatorComponents(

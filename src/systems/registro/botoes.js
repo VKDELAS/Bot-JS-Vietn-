@@ -133,7 +133,7 @@ async function handleButton(interaction, client) {
     // 4. Envia DM amigável de boas-vindas
     try {
       const embedDM = new EmbedBuilder()
-        .setTitle(`🇻🇳 Bem-vindo(a) à Facção ${FAC_NOME}!`)
+        .setTitle(`Bem-vindo(a) à Facção ${FAC_NOME}!`)
         .setDescription(
           `Olá, **${dados.nome}**! Seu registro foi analisado e **APROVADO** por nossa gerência.\n\n` +
           `Agora você faz parte da nossa família. Respeite as regras, seja leal e honre nossa bandeira.`
@@ -163,7 +163,7 @@ async function handleButton(interaction, client) {
       const canalAnuncio = guild.channels.cache.get(ANUNCIO_APROVADO_CHANNEL_ID);
       if (canalAnuncio) {
         await canalAnuncio.send(
-          `🇻🇳 **FECHOU COM A ${FAC_NOME.toUpperCase()}!**\n\n` +
+          `**FECHOU COM A ${FAC_NOME.toUpperCase()}!**\n\n` +
           `Levanta a bandeira pro <@${targetUserId}>, mano! Mais um soldado entrando pra somar com a família.\n\n` +
           `> Respeito é rua, lealdade é lei. Bem-vindo à ${FAC_NOME}, seu nome agora é peso na quebrada. 💪🔫`
         );

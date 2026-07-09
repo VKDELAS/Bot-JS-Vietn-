@@ -15,7 +15,7 @@ module.exports = {
 
     try {
       const embed = new EmbedBuilder()
-        .setTitle(`🇻🇳 Bem-vindo à Facção ${FAC_NOME}!`)
+        .setTitle(`Bem-vindo à Facção ${FAC_NOME}!`)
         .setDescription(
           `Salve, ${member}! 🎌\n\n` +
           `Você acabou de entrar no servidor oficial da **Facção ${FAC_NOME}**.\n` +

@@ -33,7 +33,7 @@ function montarContainerEntrada(membro) {
     new SectionBuilder()
       .addTextDisplayComponents(
         new TextDisplayBuilder().setContent(
-          `## Bem-vindo à Facção ${FAC_NOME}!\n` +
+          `##Bem-vindo à Facção ${FAC_NOME}!\n` +
           `Salve, ${membro}! 🎌 Você acabou de entrar no território oficial da **${FAC_NOME}**.\n\n` +
           `Dirija-se ao canal de registro e preencha sua ficha pra fazer parte da família.\n\n` +
           `-# *Respeito, lealdade e honra — os pilares do ${FAC_NOME}.*`
