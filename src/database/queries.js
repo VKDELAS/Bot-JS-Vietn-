@@ -182,11 +182,11 @@ module.exports = {
   },
 
   // ---------- Painel fixo (persistência do message_id) ----------
-  salvarPainel(channelId, messageId, version) {
+  salvarPainel(channelId, messageId) {
     db.prepare(
-      `INSERT INTO bau_painel (id, channel_id, message_id, version) VALUES (1, ?, ?, ?)
-       ON CONFLICT(id) DO UPDATE SET channel_id = excluded.channel_id, message_id = excluded.message_id, version = excluded.version`
-    ).run(channelId, messageId, version ?? null);
+      `INSERT INTO bau_painel (id, channel_id, message_id) VALUES (1, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET channel_id = excluded.channel_id, message_id = excluded.message_id`
+    ).run(channelId, messageId);
   },
 
   buscarPainel() {
@@ -194,11 +194,11 @@ module.exports = {
   },
 
   // ---------- Painel fixo do registro ----------
-  salvarPainelRegistro(channelId, messageId, version) {
+  salvarPainelRegistro(channelId, messageId) {
     db.prepare(
-      `INSERT INTO registro_painel (id, channel_id, message_id, version) VALUES (1, ?, ?, ?)
-       ON CONFLICT(id) DO UPDATE SET channel_id = excluded.channel_id, message_id = excluded.message_id, version = excluded.version`
-    ).run(channelId, messageId, version ?? null);
+      `INSERT INTO registro_painel (id, channel_id, message_id) VALUES (1, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET channel_id = excluded.channel_id, message_id = excluded.message_id`
+    ).run(channelId, messageId);
   },
 
   buscarPainelRegistro() {
