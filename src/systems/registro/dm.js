@@ -11,6 +11,8 @@ const {
   ThumbnailBuilder,
   SeparatorBuilder,
   SeparatorSpacingSize,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder,
   MessageFlags,
 } = require('discord.js');
 
@@ -23,6 +25,7 @@ const { CORES, FAC_NOME } = require('../../config/settings');
  *   idFac: string,
  *   aprovadoPorTag: string,
  *   guildIconURL?: string,
+ *   guildBannerURL?: string,
  *   guildNome?: string,
  * }} dados
  * @returns {ContainerBuilder}
@@ -30,25 +33,31 @@ const { CORES, FAC_NOME } = require('../../config/settings');
 function montarContainerDMAprovado(dados) {
   const container = new ContainerBuilder().setAccentColor(CORES.VIETNA);
 
+  // Banner (se o servidor tiver um definido). Some silenciosamente se não houver.
+  if (dados.guildBannerURL) {
+    container.addMediaGalleryComponents(
+      new MediaGalleryBuilder().addItems(
+        new MediaGalleryItemBuilder().setURL(dados.guildBannerURL)
+      )
+    );
+  }
+
   // Título
   container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(`#Bem-vindo(a) à Facção ${FAC_NOME}!`)
+    new TextDisplayBuilder().setContent(`## BEM-VINDO À ${FAC_NOME.toUpperCase()}`)
   );
 
   container.addSeparatorComponents(
     new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(false)
   );
 
-  // Mensagem de boas-vindas + ficha, com o brasão/ícone do servidor como thumbnail
+  // Mensagem de boas-vindas, com o brasão/ícone do servidor como thumbnail
   container.addSectionComponents(
     new SectionBuilder()
       .addTextDisplayComponents(
         new TextDisplayBuilder().setContent(
-          `Olá, **${dados.nome}**! Seu registro foi analisado e **APROVADO** pela nossa gerência.\n\n` +
-          `Agora você faz parte da nossa família. Respeite as regras, seja leal e honre nossa bandeira.\n\n` +
-          `**Nome no Registro** · ${dados.nome}\n` +
-          `**Seu ID** · \`${dados.idFac}\`\n` +
-          `**Status** · ✅ Membro Oficial`
+          `Olá, **${dados.nome}**.\n` +
+          `> Seu registro foi analisado e **aprovado** pela gerência. A partir de agora você faz parte da nossa família — respeite as regras, seja leal e honre nossa bandeira.`
         )
       )
       .setThumbnailAccessory(
@@ -58,7 +67,22 @@ function montarContainerDMAprovado(dados) {
       )
   );
 
-  container.addSeparatorComponents(new SeparatorBuilder());
+  container.addSeparatorComponents(
+    new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+  );
+
+  // Ficha do membro
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(
+      `**Nome no Registro**\n${dados.nome}\n\n` +
+      `**ID da Facção**\n\`${dados.idFac}\`\n\n` +
+      `**Status**\nMembro Oficial`
+    )
+  );
+
+  container.addSeparatorComponents(
+    new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
+  );
 
   container.addTextDisplayComponents(
     new TextDisplayBuilder().setContent(
