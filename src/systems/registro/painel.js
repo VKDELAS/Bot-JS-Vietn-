@@ -1,7 +1,6 @@
 // ============================================================
-// systems/registro/log.js
-// Log de registros (Components V2) — pendente / aprovado / reprovado.
-// Portado do bot.py antigo (embeds) pro formato Components V2.
+// systems/registro/painel.js
+// Monta o Container (Components V2) do painel de registro.
 // ============================================================
 
 const {
@@ -10,137 +9,71 @@ const {
   TextDisplayBuilder,
   ThumbnailBuilder,
   SeparatorBuilder,
+  SeparatorSpacingSize,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  MessageFlags,
 } = require('discord.js');
 
-const { CANAL_LOGS_REGISTRO } = require('../../config/settings');
+const { IMAGEM_FACCAO_URL, CORES, FAC_NOME } = require('../../config/settings');
 
-const CONFIG = {
-  pendente: {
-    emoji: '📥',
-    cor: 0xffb800,          // amarelo
-    badge: '`⏳ PENDENTE`',
-  },
-  aprovado: {
-    emoji: '✅',
-    cor: 0x2ecc71,          // verde
-    badge: '`✔ APROVADO`',
-  },
-  reprovado: {
-    emoji: '❌',
-    cor: 0xe74c3c,          // vermelho
-    badge: '`✕ REPROVADO`',
-  },
-};
+// ⚠️ Link de attachment do Discord expira (tem assinatura `ex=`/`is=`/`hm=`).
+// Troque por um host permanente (Imgur, CDN próprio) assim que possível,
+// senão o banner vai quebrar quando o link vencer.
+const BANNER_REGISTRO_URL =
+  'https://cdn.discordapp.com/attachments/1487938963317719306/1524558767142862948/content.png?ex=6a502f7f&is=6a4eddff&hm=7e7040530d3b111ffbdf025e42ec00e3af86d9d15afa8a99e0fffaef8a2103dc&';
 
 /**
- * Monta o Container (Components V2) do log de registro pra qualquer status.
- * @param {{
- *   usuarioId: string,
- *   usuarioTag: string,
- *   usuarioAvatarURL?: string,
- *   nome: string,
- *   idFac: string,
- *   numero: string,
- *   status: 'pendente'|'aprovado'|'reprovado',
- *   decididoPorTag?: string,   // quem aprovou/reprovou
- * }} dados
+ * Constrói o layout do painel de registro usando Components V2 para máxima sofisticação.
+ * Ordem: título → banner → descrição/requisitos → botão.
  * @returns {ContainerBuilder}
  */
-function montarContainerLogRegistro(dados) {
-  const cfg = CONFIG[dados.status] || CONFIG.pendente;
-  const agora = Math.floor(Date.now() / 1000);
+function construirContainerRegistro() {
+  const container = new ContainerBuilder().setAccentColor(CORES.VIETNA);
 
-  const container = new ContainerBuilder().setAccentColor(cfg.cor);
-
-  // Bloco principal: badge + ficha + avatar do candidato
-  container.addSectionComponents(
-    new SectionBuilder()
-      .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent(
-          `${cfg.badge}\n` +
-          `### ${cfg.emoji} Registro — ${dados.nome}\n` +
-          `**Discord** · <@${dados.usuarioId}>\n` +
-          `**ID** · \`${dados.idFac}\`   **Número** · \`${dados.numero}\`\n` +
-          `**Enviado** · <t:${agora}:R>`
-        )
-      )
-      .setThumbnailAccessory(
-        new ThumbnailBuilder().setURL(
-          dados.usuarioAvatarURL || 'https://cdn.discordapp.com/embed/avatars/0.png'
-        )
-      )
+  // Título no topo, sozinho — sem thumbnail, já que o banner abaixo cumpre esse papel visual
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(`# 🇻🇳 REGISTRO — ${FAC_NOME.toUpperCase()}`)
   );
 
-  // Rodapé de decisão — só aparece depois que já foi aprovado/reprovado
-  if (dados.status !== 'pendente' && dados.decididoPorTag) {
-    container.addSeparatorComponents(new SeparatorBuilder());
-    container.addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(
-        `-# ${dados.status === 'aprovado' ? 'Aprovado' : 'Reprovado'} por **${dados.decididoPorTag}**`
-      )
-    );
-  }
+  // Banner logo abaixo do título
+  container.addMediaGalleryComponents(
+    new MediaGalleryBuilder().addItems(
+      new MediaGalleryItemBuilder().setURL(BANNER_REGISTRO_URL)
+    )
+  );
 
-  // Botões só ficam ativos enquanto pendente
-  const aprovarBtn = new ButtonBuilder()
-    .setCustomId(`registro_aprovar_${dados.usuarioId}`)
-    .setLabel('Aprovar')
-    .setEmoji('✅')
-    .setStyle(ButtonStyle.Success)
-    .setDisabled(dados.status !== 'pendente');
+  container.addSeparatorComponents(
+    new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(false)
+  );
 
-  const reprovarBtn = new ButtonBuilder()
-    .setCustomId(`registro_reprovar_${dados.usuarioId}`)
-    .setLabel('Reprovar')
-    .setEmoji('❌')
-    .setStyle(ButtonStyle.Danger)
-    .setDisabled(dados.status !== 'pendente');
+  // Descrição + requisitos, com redação mais direta e profissional
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(
+      `Para ingressar na facção, preencha a ficha cadastral abaixo com atenção. ` +
+      `Antes de começar, tenha em mãos:\n\n` +
+      `▸ **Nome Completo** — sem números ou caracteres especiais\n` +
+      `▸ **ID** — identificação numérica entre \`1\` e \`20.000\`\n` +
+      `▸ **Número** — DDD \`01\` ou \`02\`, apenas dígitos\n\n` +
+      `> 🔺 *Após o envio, sua ficha será analisada pela gerência. O resultado será enviado por mensagem direta (PV).*`
+    )
+  );
+
+  container.addSeparatorComponents(new SeparatorBuilder());
 
   container.addActionRowComponents(
-    new ActionRowBuilder().addComponents(aprovarBtn, reprovarBtn)
+    new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('registro_abrir')
+        .setLabel('Registrar-se')
+        .setEmoji('📝')
+        .setStyle(ButtonStyle.Primary)
+    )
   );
 
   return container;
 }
 
-/**
- * Envia o log inicial (status pendente) no canal de logs de registro.
- * @param {import('discord.js').Client} client
- * @param {object} dados - mesmo shape de montarContainerLogRegistro, sem status/decididoPorTag
- * @returns {Promise<import('discord.js').Message|null>}
- */
-async function enviarLogRegistro(client, dados) {
-  try {
-    const canal = await client.channels.fetch(CANAL_LOGS_REGISTRO);
-    const container = montarContainerLogRegistro({ ...dados, status: 'pendente' });
-
-    return await canal.send({
-      content: `🔔 Novo registro de <@${dados.usuarioId}> aguardando aprovação!`,
-      components: [container],
-      flags: MessageFlags.IsComponentsV2,
-    });
-  } catch (erro) {
-    console.error('[registro] Falha ao enviar log de registro:', erro.message);
-    return null;
-  }
-}
-
-/**
- * Atualiza a mensagem de log existente pra refletir aprovação/reprovação
- * (badge muda, rodapé com quem decidiu, botões desativados).
- * @param {import('discord.js').Message} mensagem - mensagem original do log (interaction.message)
- * @param {object} dados - mesmo shape de montarContainerLogRegistro, com status já definido
- */
-async function atualizarLogRegistro(mensagem, dados) {
-  const container = montarContainerLogRegistro(dados);
-  await mensagem.edit({
-    components: [container],
-    flags: MessageFlags.IsComponentsV2,
-  });
-}
-
-module.exports = { montarContainerLogRegistro, enviarLogRegistro, atualizarLogRegistro };
+module.exports = { construirContainerRegistro };
