@@ -149,6 +149,14 @@ async function handleModalSubmit(interaction, client) {
   // Layout CV2 limpo para aprovação
   const container = new ContainerBuilder().setAccentColor(CORES.ALERTA);
 
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(
+      `🔔 <@${user.id}> enviou um registro — <t:${Math.floor(Date.now() / 1000)}:R>`
+    )
+  );
+
+  container.addSeparatorComponents(new SeparatorBuilder());
+
   container.addSectionComponents(
     new SectionBuilder()
       .addTextDisplayComponents(
@@ -188,7 +196,6 @@ async function handleModalSubmit(interaction, client) {
   );
 
   const msg = await canalLogs.send({
-    content: `🔔 <@${user.id}> enviou um registro — <t:${Math.floor(Date.now() / 1000)}:R>`,
     components: [container],
     flags: MessageFlags.IsComponentsV2,
   });

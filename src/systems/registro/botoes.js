@@ -15,7 +15,14 @@ const {
 
 const fs = require('fs');
 const path = require('path');
-const { ROLES, CARGOS_APROVACAO_REGISTRO, CORES, FAC_NOME } = require('../../config/settings');
+const {
+  ROLES,
+  CARGOS_APROVACAO_REGISTRO,
+  CORES,
+  FAC_NOME,
+  ANUNCIO_APROVADO_CHANNEL_ID,
+  ANUNCIO_REPROVADO_CHANNEL_ID,
+} = require('../../config/settings');
 const { negarPermissao } = require('../../utils/permissoes');
 
 /**
@@ -89,6 +96,12 @@ async function handleButton(interaction, client) {
 
     // 3. Atualiza a mensagem no canal de logs
     const container = new ContainerBuilder().setAccentColor(CORES.APROVADO);
+    container.addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(
+        `✅ <@${targetUserId}> aprovado por <@${interaction.user.id}> — <t:${Math.floor(Date.now() / 1000)}:R>`
+      )
+    );
+    container.addSeparatorComponents(new SeparatorBuilder());
     container.addSectionComponents(
       new SectionBuilder()
         .addTextDisplayComponents(
@@ -113,7 +126,6 @@ async function handleButton(interaction, client) {
     );
 
     await interaction.message.edit({
-      content: `✅ <@${targetUserId}> aprovado por <@${interaction.user.id}> — <t:${Math.floor(Date.now() / 1000)}:R>`,
       components: [container],
       flags: MessageFlags.IsComponentsV2,
     });
@@ -146,6 +158,22 @@ async function handleButton(interaction, client) {
       console.warn(`[registro] Não foi possível enviar DM para ${membro.user.tag}:`, erro.message);
     }
 
+    // 4.5. Anúncio público no canal da facção
+    try {
+      const canalAnuncio = guild.channels.cache.get(ANUNCIO_APROVADO_CHANNEL_ID);
+      if (canalAnuncio) {
+        await canalAnuncio.send(
+          `🇻🇳 **FECHOU COM A ${FAC_NOME.toUpperCase()}!**\n\n` +
+          `Levanta a bandeira pro <@${targetUserId}>, mano! Mais um soldado entrando pra somar com a família.\n\n` +
+          `> Respeito é rua, lealdade é lei. Bem-vindo à ${FAC_NOME}, seu nome agora é peso na quebrada. 💪🔫`
+        );
+      } else {
+        console.error('[registro] Canal de anúncio de aprovado não encontrado.');
+      }
+    } catch (erro) {
+      console.warn('[registro] Erro ao enviar anúncio de aprovado:', erro.message);
+    }
+
     // 5. Salva os dados atualizados
     dados.status = 'aprovado';
     dados.aprovado_por = interaction.user.tag;
@@ -161,6 +189,12 @@ async function handleButton(interaction, client) {
 
     // 1. Atualiza a mensagem no canal de logs
     const container = new ContainerBuilder().setAccentColor(CORES.REPROVADO);
+    container.addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(
+        `❌ <@${targetUserId}> reprovado por <@${interaction.user.id}> — <t:${Math.floor(Date.now() / 1000)}:R>`
+      )
+    );
+    container.addSeparatorComponents(new SeparatorBuilder());
     container.addSectionComponents(
       new SectionBuilder()
         .addTextDisplayComponents(
@@ -185,7 +219,6 @@ async function handleButton(interaction, client) {
     );
 
     await interaction.message.edit({
-      content: `❌ <@${targetUserId}> reprovado por <@${interaction.user.id}> — <t:${Math.floor(Date.now() / 1000)}:R>`,
       components: [container],
       flags: MessageFlags.IsComponentsV2,
     });
@@ -206,6 +239,22 @@ async function handleButton(interaction, client) {
       await membro.send({ embeds: [embedDM] });
     } catch (erro) {
       console.warn(`[registro] Não foi possível enviar DM de recusa para ${membro.user.tag}:`, erro.message);
+    }
+
+    // 2.5. Registro no canal de reprovados
+    try {
+      const canalAnuncio = guild.channels.cache.get(ANUNCIO_REPROVADO_CHANNEL_ID);
+      if (canalAnuncio) {
+        await canalAnuncio.send(
+          `🚫 **FICHA NEGADA**\n\n` +
+          `<@${targetUserId}> não fechou com a ${FAC_NOME} dessa vez. Ficha não passou pela gerência.\n\n` +
+          `> Quem sabe numa próxima, mano. A quebrada tem os próprios critérios.`
+        );
+      } else {
+        console.error('[registro] Canal de anúncio de reprovado não encontrado.');
+      }
+    } catch (erro) {
+      console.warn('[registro] Erro ao enviar anúncio de reprovado:', erro.message);
     }
 
     // 3. Salva os dados atualizados

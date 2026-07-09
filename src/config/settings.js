@@ -24,6 +24,12 @@ module.exports = {
   // Canal onde os novos registros chegam para a aprovação dos superiores
   REGISTRO_LOGS_CHANNEL_ID: '1488175178738565222',
 
+  // Canal onde é anunciado publicamente quando alguém é aprovado na facção
+  ANUNCIO_APROVADO_CHANNEL_ID: '1487942740279824573',
+
+  // Canal onde é registrado quando uma ficha é reprovada
+  ANUNCIO_REPROVADO_CHANNEL_ID: '1487942740279824574',
+
   // Canal onde a mensagem de boas-vindas é enviada quando alguém entra no servidor
   ENTRADA_CHANNEL_ID: '1487942740279824569',
 
