@@ -31,10 +31,10 @@ Quando dito "COMPACTAR", resume toda a conversa em 5-7 bullets com contexto crí
 ## 1. Stack e Versões
 
 - **Runtime:** Node.js ≥ 20
-- **Lib:** discord.js v14 (latest)
-- **Banco:** better-sqlite3 (SQLite, síncrono)
-- **Env:** dotenv
-- **Host:** Discloud
+- **Lib:** discord.js v14 ^14.17.0
+- **Banco:** better-sqlite3 ^11.0.0
+- **Env:** dotenv ^17.4.2
+- **Host:** Discloud (RAM 200MB)
 - **Repo:** https://github.com/VKDELAS/Bot-JS-Vietn-.git
 - **Entrypoint:** `index.js` (raiz)
 
@@ -48,8 +48,7 @@ index.js                  ← entrypoint, carrega commands/ e events/ de src/
 discloud.config           ← config do Discloud (RAM: 512, AUTORESTART: true)
 src/
 ├── commands/
-│   ├── bau.js            ← slash /bau — posta painel do baú
-│   └── inicial.js        ← slash /inicial — posta painel de registro
+│   └── setup.js          ← slash /setup — posta/atualiza painéis (baú + registro) com comparação de conteúdo
 ├── config/
 │   └── settings.js       ← ÚNICA fonte de IDs, cargos e cores
 ├── database/
@@ -58,8 +57,8 @@ src/
 ├── events/
 │   ├── ready.js          ← registra sistemas + sincroniza slash commands
 │   ├── interactionCreate.js ← roteia slash commands para commands/
-│   ├── guildMemberAdd.js ← embed de boas-vindas no canal de sistema
-│   └── guildMemberRemove.js ← embed de saída no canal de sistema
+│   ├── guildMemberAdd.js ← delega para systems/boasvindas/mensagens.js (CV2)
+│   └── guildMemberRemove.js ← delega para systems/boasvindas/mensagens.js (CV2)
 ├── systems/
 │   ├── bau/
 │   │   ├── index.js      ← listener persistente (bau_*) registrado no ready
@@ -67,15 +66,18 @@ src/
 │   │   ├── botoes.js     ← router de cliques (switch no customId)
 │   │   ├── selects.js    ← router de selects + modais de guardar/retirar/criar/editar
 │   │   ├── modals.js     ← handler de modal submit (grava banco + atualiza painel + loga)
-│   │   ├── gerenciar.js  ← submenu só-líder: criar item, add categoria, reset, editar qtd
+│   │   ├── gerenciar.js  ← submenu só-líder: criar/excluir item, add/remover categoria, reset, editar qtd
 │   │   ├── estoque.js    ← ver estoque e itens em falta (efêmero)
 │   │   ├── historico.js  ← meu histórico e log geral (efêmero)
-│   │   └── log.js        ← dispara mensagem de texto no canal de log do baú
-│   └── registro/
-│       ├── index.js      ← listener persistente (registro_*) registrado no ready
-│       ├── painel.js     ← constrói Container CV2 do painel de registro
-│       ├── modals.js     ← modal de cadastro + validações + envia para canal de logs
-│       └── botoes.js     ← aprovar/reprovar: add cargo, nick, DM, edita mensagem CV2
+│   │   └── log.js        ← dispara Container CV2 no canal de log do baú
+│   ├── registro/
+│   │   ├── index.js      ← listener persistente (registro_*) registrado no ready
+│   │   ├── painel.js     ← constrói Container CV2 do painel de registro
+│   │   ├── modals.js     ← modal de cadastro + validações + envia Container CV2 para canal de logs
+│   │   ├── botoes.js     ← aprovar/reprovar: add cargo, nick, DM embed, anúncio público, edita mensagem CV2
+│   │   └── dm.js         ← (não usado atualmente) monta Container CV2 pra DM de boas-vindas
+│   └── boasvindas/
+│       └── mensagens.js  ← monta e envia Containers CV2 de entrada/saída nos canais configurados
 └── utils/
     ├── permissoes.js     ← ehLider(), ehMembroDaFaccao(), negarPermissao()
     ├── data.js           ← formatarDataHora(isoString) → "dd/mm/aaaa hh:mm"
@@ -94,6 +96,10 @@ BAU_PANEL_CHANNEL_ID    → '1524415283522044014'
 BAU_LOG_CHANNEL_ID      → '1524415448995598446'
 REGISTRO_CHANNEL_ID     → '1488175523254505583'
 REGISTRO_LOGS_CHANNEL_ID → '1488175178738565222'
+ANUNCIO_APROVADO_CHANNEL_ID  → '1487942740279824573'
+ANUNCIO_REPROVADO_CHANNEL_ID → '1487942740279824574'
+ENTRADA_CHANNEL_ID     → '1487942740279824569'
+SAIDA_CHANNEL_ID       → '1524585567877071010'
 
 ROLES = {
   EDITOR_SERVER: '1487942738950361126',
@@ -106,8 +112,8 @@ ROLES = {
   MEMBRO:        '1487942739365593212',
 }
 
-CARGOS_LIDERES              → [LIDER_01, LIDER_02]        ← botões restritos do baú
-CARGOS_APROVACAO_REGISTRO   → [LIDER_01, LIDER_02, GERENTE_GERAL]
+CARGOS_LIDERES              → [EDITOR_SERVER, LIDER_01, LIDER_02]  ← botões restritos do baú
+CARGOS_APROVACAO_REGISTRO   → [EDITOR_SERVER, LIDER_01, LIDER_02, GERENTE_GERAL]
 
 CORES = {
   VIETNA:    0x54a0ff,   ← azul claro (cor principal da facção)
@@ -136,7 +142,8 @@ COR_PAINEL_ALERTA → 0xffb800  (baú com item em falta)
 | `bau_categorias` | id, nome, emoji |
 | `bau_itens` | id, categoria_id, nome, emoji, quantidade, quantidade_minima, criado_em, atualizado_em |
 | `bau_movimentacoes` | id, item_id, usuario_id, usuario_tag, tipo (`entrada`/`saida`/`ajuste_manual`), quantidade, data |
-| `bau_painel` | id=1, channel_id, message_id (referência do painel fixo) |
+| `bau_painel` | id=1, channel_id, message_id, version (referência do painel fixo) |
+| `registro_painel` | id=1, channel_id, message_id, version (referência do painel de registro) |
 
 **Regra:** todo SQL fica em `database/queries.js`. Sistemas importam de lá, nunca escrevem SQL direto.
 
@@ -180,6 +187,8 @@ negarPermissao(interaction, motivo) → reply efêmero com 🚫
 | `bau_gerenciar` | abre submenu gerenciar |
 | `bau_ger_criar_item` | criar item novo |
 | `bau_ger_add_categoria` | nova categoria |
+| `bau_ger_retirar_categoria` | remover categoria (só se vazia) |
+| `bau_ger_excluir_item` | excluir item + histórico |
 | `bau_ger_resetar_item` | zerar item |
 | `bau_ger_editar_qtd` | editar quantidade manual |
 | `bau_cat_sel__{contexto}` | select de categoria |
@@ -190,6 +199,8 @@ negarPermissao(interaction, motivo) → reply efêmero com 🚫
 | `bau_modal_add_categoria` | modal submit nova categoria |
 | `bau_modal_editar_qtd__{itemId}` | modal submit editar qtd |
 | `bau_confirmar_reset__{itemId}` | botão confirmar reset |
+| `bau_confirmar_excluir__{itemId}` | botão confirmar exclusão |
+| `bau_ger_sel_deletar_cat` | select de deletar categoria |
 | `bau_cancelar` | cancelar ação |
 
 ### Fluxo Guardar
@@ -198,11 +209,8 @@ negarPermissao(interaction, motivo) → reply efêmero com 🚫
 ### Fluxo Retirar
 `bau_retirar` → select itens disponíveis (`bau_item_sel__retirar`) → modal quantidade → valida ≤ disponível → grava banco → `atualizarPainel` → `logarMovimentacao`
 
-### Log automático
-Toda movimentação manda texto simples no `BAU_LOG_CHANNEL_ID`:
-```
-📥 usuario#0000 guardou 5x 🔫 AK-47 do baú — 08/07/2026 17:30
-```
+### Log automático (CV2)
+Toda movimentação manda Container CV2 no `BAU_LOG_CHANNEL_ID` com badge + item + thumbnail do usuário.
 
 ---
 
@@ -232,13 +240,15 @@ Após validação: salva `registros/{user.id}.json` com `status: "pendente"`, en
 3. Seta nickname `Nome | ID`
 4. Edita mensagem → Container CV2 verde (APROVADO), sem botões
 5. Envia DM Embed azul de boas-vindas
-6. Atualiza JSON → `status: "aprovado"`
+6. Envia anúncio público no `ANUNCIO_APROVADO_CHANNEL_ID`
+7. Atualiza JSON → `status: "aprovado"`
 
 **Reprovar:**
 1. Verifica `CARGOS_APROVACAO_REGISTRO`
 2. Edita mensagem → Container CV2 vermelho (REPROVADO), sem botões
 3. Envia DM Embed de recusa
-4. Atualiza JSON → `status: "reprovado"`
+4. Envia aviso no `ANUNCIO_REPROVADO_CHANNEL_ID`
+5. Atualiza JSON → `status: "reprovado"`
 
 ### CustomId pattern
 
@@ -257,8 +267,10 @@ CV2 usado **exclusivamente** em:
 - Painel do baú (`systems/bau/painel.js`)
 - Painel de registro (`systems/registro/painel.js`)
 - Mensagens de log de aprovação/reprovação de registro (`systems/registro/botoes.js`)
+- Log de movimentações do baú (`systems/bau/log.js`)
+- Mensagens de entrada/saída da facção (`systems/boasvindas/mensagens.js`)
 
-**Todo o resto** usa markdown/embeds normais (feeds de log, DMs, mensagens efêmeras simples).
+**Todo o resto** usa markdown/embeds normais (DMs, mensagens efêmeras simples).
 
 Mensagens CV2 **obrigatoriamente** precisam do flag:
 ```js
@@ -309,7 +321,7 @@ path.join(process.cwd(), 'data', 'ms13_bau.db')
 ## 11. Deploy (Discloud)
 
 - **Token:** configurar em Variáveis de Ambiente do painel Discloud (`TOKEN=...`)
-- **RAM:** 512MB (definido no `discloud.config`)
+- **RAM:** 200MB (definido no `discloud.config`)
 - **Autorestart:** ativo
 - **`node_modules/` e `.env`** nunca vão pro deploy (`.discloudignore`)
 - Discloud roda `npm install` automaticamente
